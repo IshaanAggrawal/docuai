@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Bot, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 
 const Signup = () => {
+  navigate= useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Signup = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signup logic here
-    console.log("Signup attempt:", formData);
+    navigate("/chat");
   };
 
   const handleChange = (field: string, value: string | boolean) => {
