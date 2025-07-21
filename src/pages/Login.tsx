@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "../lib/supabaseClient";
+import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,11 +16,34 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast.error("Login failed: " + error.message);
+      return;
+    }
+
+    toast.success("Login successful!");
     navigate("/chat");
-    console.log("Login attempt:", { email, password, rememberMe });
   };
+  const handleGoogleLogin = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+  });
+
+  if (error) {
+    toast.error("Google login failed: " + error.message);
+  } else {
+    toast("Redirecting to Google...");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
@@ -114,6 +139,7 @@ const Login = () => {
               variant="outline"
               className="w-full transition-smooth hover:bg-accent"
               size="lg"
+              onClick={handleGoogleLogin}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import { queryDocuAI } from "./api/query-docuai";
 
 interface Message {
   id: string;
@@ -21,94 +22,73 @@ interface ChatHistory {
   lastMessage: string;
   timestamp: Date;
 }
-
+const suggestedQuestions = [
+  "What's the company's refund policy?",
+  "How do I submit an expense report?", 
+  "What are the vacation day policies?",
+  "Where can I find the employee handbook?"
+];
 const Chat = () => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const cached = localStorage.getItem('docuai-messages');
-    return cached ? JSON.parse(cached) : [
-      {
-        id: '1',
-        content: "Hello! I'm DocuAI, your company's AI assistant. I can help you find information from your internal documents, policies, and knowledge base. What would you like to know?",
-        sender: 'ai',
-        timestamp: new Date(),
-      },
-    ];
-  });
+  const [messages, setMessages] = useState<Message[]>([
+  {
+    id: '1',
+    content: "Hello! I'm DocuAI, your company's AI assistant. I can help you find information from your internal documents, policies, and knowledge base. What would you like to know?",
+    sender: 'ai',
+    timestamp: new Date(),
+  },
+]);
+
   
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  // Stub chat history (you can replace this with real logic if needed)
+const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+
+// Filtered messages based on search term
+const filteredMessages = messages.filter((msg) =>
+  msg.content.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>(() => {
-    const cached = localStorage.getItem('docuai-chat-history');
-    return cached ? JSON.parse(cached) : [
-      { id: '1', title: 'Employee handbook questions', lastMessage: 'What is the vacation policy?', timestamp: new Date(Date.now() - 3600000) },
-      { id: '2', title: 'IT support procedures', lastMessage: 'How do I reset my password?', timestamp: new Date(Date.now() - 7200000) },
-      { id: '3', title: 'Benefits overview', lastMessage: 'Tell me about health insurance', timestamp: new Date(Date.now() - 86400000) },
-    ];
-  });
+const handleSendMessage = async (optionalInput?: string) => {
+  const messageText = optionalInput ?? inputValue;
+  if (!messageText.trim()) return;
 
-  const suggestedQuestions = [
-    "What is our company's vacation policy?",
-    "How do I submit an expense report?",
-    "What are the IT security guidelines?",
-    "Where can I find the employee handbook?",
-  ];
-
-  // Cache messages whenever they change
-  useEffect(() => {
-    localStorage.setItem('docuai-messages', JSON.stringify(messages));
-  }, [messages]);
-
-  // Cache chat history whenever it changes
-  useEffect(() => {
-    localStorage.setItem('docuai-chat-history', JSON.stringify(chatHistory));
-  }, [chatHistory]);
-  
-  // Filter messages based on search term
-  const filteredMessages = messages.filter(message =>
-    message.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleSendMessage = async (messageText?: string) => {
-    const textToSend = messageText || inputValue;
-    if (!textToSend.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: textToSend,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setInputValue("");
-    setIsLoading(true);
-
-    // Simulate AI response with caching
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `I understand you're asking about "${textToSend}". Based on your company's documentation, here's what I found: This is a simulated response. In a real implementation, this would search through your company's knowledge base and provide relevant information with source citations.`,
-        sender: 'ai',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
-      
-      // Update chat history
-      const newChat: ChatHistory = {
-        id: Date.now().toString(),
-        title: textToSend.slice(0, 30) + (textToSend.length > 30 ? '...' : ''),
-        lastMessage: textToSend,
-        timestamp: new Date(),
-      };
-      setChatHistory(prev => [newChat, ...prev.slice(0, 9)]); // Keep only last 10 chats
-    }, 1000);
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    content: messageText,
+    sender: 'user',
+    timestamp: new Date()
   };
+setMessages((prev) => [...prev, userMessage]);
+  setInputValue('');
+  setIsLoading(true);
+
+  try {
+    const answer = await queryDocuAI(messageText);
+  const assistantMessage: Message = {
+    id: (Date.now() + 1).toString(),
+    content: answer,
+    sender: 'ai',
+    timestamp: new Date()
+  };
+setMessages((prev) => [...prev, assistantMessage]);
+  } catch (error: any) {
+    console.error('Error:', error);
+      toast({
+    title: "Error",
+    description: error.message || 'Something went wrong',
+    variant: "destructive"
+  });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
   const handleCopyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
@@ -319,7 +299,7 @@ const Chat = () => {
                   <p className="text-sm leading-relaxed">{message.content}</p>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
                     <span className="text-xs opacity-70">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <Button
                       variant="ghost"

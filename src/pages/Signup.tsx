@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "../lib/supabaseClient";
+import { toast } from "sonner";
 
 const Signup = () => {
   const navigate= useNavigate();
@@ -19,11 +21,59 @@ const Signup = () => {
     agreeToTerms: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle signup logic here
-    navigate("/chat");
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const { name, email, password, confirmPassword } = formData;
+
+  if (!formData.agreeToTerms) {
+    toast.error("You must agree to the terms and conditions.");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    toast.error("Passwords do not match.");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name },
+      },
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Signup successful! Check your email to confirm.");
+      navigate("/chat");
+    }
+  } catch (err) {
+    toast.error("Something went wrong.");
+    console.error(err);
+  }
+};
+
+const handleGoogleSignIn = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+
+    if (error) {
+      toast.error("Google sign-in failed.");
+      console.error(error);
+    }
+  } catch (err) {
+    toast.error("Something went wrong with Google login.");
+    console.error(err);
+  }
+};
+
+
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
