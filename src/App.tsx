@@ -19,6 +19,8 @@ import Reports from "./features/analytics/pages/Reports";
 import UserManagement from "./features/admin/pages/UserManagement";
 import Settings from "./features/admin/pages/Settings";
 import Dashboard from "./features/onboarding/pages/Dashboard";
+// Test component
+import TestDeployment from "./test-deployment";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,9 @@ const App = () => (
           <Route path="/docs" element={<Docs />} />
           <Route path="/onboarding" element={<OnboardingDashboard />} />
           <Route path="/documents" element={<DocumentManagement />} />
+          
+          {/* Test route */}
+          <Route path="/test" element={<TestDeployment />} />
           
           {/* Dashboard routes */}
           <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
