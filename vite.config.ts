@@ -5,9 +5,9 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "./", // ✅ Important for Vercel to load assets correctly
+  base: "/", // Changed from "./" to "/" for Vercel deployment
   build: {
-    outDir: "dist", // ✅ Ensure output directory matches vercel.json
+    outDir: "dist",
   },
   server: {
     host: "::",
