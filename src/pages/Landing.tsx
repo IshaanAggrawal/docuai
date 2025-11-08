@@ -24,6 +24,9 @@ const Landing = () => {
     },
   ];
 
+  // Debug logging
+  console.log('Landing page rendering');
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
