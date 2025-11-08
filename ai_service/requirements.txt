@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+langchain
+langchain-core
+langchain-openai
+groq
+supabase
+pgvector
+pymupdf
+python-multipart
+python-dotenv
+requests
+tqdm
+langchain-community
+sentence-transformers

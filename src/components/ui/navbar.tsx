@@ -8,7 +8,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: "Features", href: "#features" },
+    { name: "Features", href: "/" },
     { name: "Pricing", href: "/pricing" },
     { name: "Docs", href: "/docs" },
   ];
